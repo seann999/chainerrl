@@ -16,15 +16,29 @@ from chainerrl.agents.dqn import compute_value_loss
 from chainerrl.agents.dqn import compute_weighted_value_loss
 from chainerrl.agents.dqn import DQN
 
+from basetest_training import _TestBatchTrainingMixin
 
-class TestDQNOnDiscreteABC(base._TestDQNOnDiscreteABC):
+
+class TestDQNOnDiscreteABC(
+        _TestBatchTrainingMixin, base._TestDQNOnDiscreteABC):
 
     def make_dqn_agent(self, env, q_func, opt, explorer, rbuf, gpu):
         return DQN(q_func, opt, rbuf, gpu=gpu, gamma=0.9, explorer=explorer,
                    replay_start_size=100, target_update_interval=100)
 
+    def test_replay_capacity_checked(self):
+        env, _ = self.make_env_and_successful_return(test=False)
+        q_func = self.make_q_func(env)
+        opt = self.make_optimizer(env, q_func)
+        explorer = self.make_explorer(env)
+        rbuf = chainerrl.replay_buffer.ReplayBuffer(capacity=90)
+        with self.assertRaises(ValueError):
+            self.make_dqn_agent(env=env, q_func=q_func, opt=opt,
+                                explorer=explorer, rbuf=rbuf, gpu=None)
 
-class TestDQNOnDiscreteABCBoltzmann(base._TestDQNOnDiscreteABC):
+
+class TestDQNOnDiscreteABCBoltzmann(
+        _TestBatchTrainingMixin, base._TestDQNOnDiscreteABC):
 
     def make_dqn_agent(self, env, q_func, opt, explorer, rbuf, gpu):
         explorer = chainerrl.explorers.Boltzmann()
@@ -32,13 +46,15 @@ class TestDQNOnDiscreteABCBoltzmann(base._TestDQNOnDiscreteABC):
                    replay_start_size=100, target_update_interval=100)
 
 
-class TestDQNOnContinuousABC(base._TestDQNOnContinuousABC):
+class TestDQNOnContinuousABC(
+        _TestBatchTrainingMixin, base._TestDQNOnContinuousABC):
 
     def make_dqn_agent(self, env, q_func, opt, explorer, rbuf, gpu):
         return DQN(q_func, opt, rbuf, gpu=gpu, gamma=0.9, explorer=explorer,
                    replay_start_size=100, target_update_interval=100)
 
 
+# Batch training with recurrent models is currently not supported
 class TestDQNOnDiscretePOABC(base._TestDQNOnDiscretePOABC):
 
     def make_dqn_agent(self, env, q_func, opt, explorer, rbuf, gpu):

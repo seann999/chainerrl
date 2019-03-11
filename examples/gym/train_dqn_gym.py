@@ -104,7 +104,7 @@ def main():
             env = chainerrl.wrappers.ScaleReward(env, args.reward_scale_factor)
         if ((args.render_eval and test) or
                 (args.render_train and not test)):
-            misc.env_modifiers.make_rendered(env)
+            env = chainerrl.wrappers.Render(env)
         return env
 
     env = make_env(test=False)
@@ -189,7 +189,8 @@ def main():
         eval_stats = experiments.eval_performance(
             env=eval_env,
             agent=agent,
-            n_runs=args.eval_n_runs,
+            n_steps=None,
+            n_episodes=args.eval_n_runs,
             max_episode_len=timestep_limit)
         print('n_runs: {} mean: {} median: {} stdev {}'.format(
             args.eval_n_runs, eval_stats['mean'], eval_stats['median'],
@@ -197,9 +198,10 @@ def main():
     else:
         experiments.train_agent_with_evaluation(
             agent=agent, env=env, steps=args.steps,
-            eval_n_runs=args.eval_n_runs, eval_interval=args.eval_interval,
+            eval_n_steps=None,
+            eval_n_episodes=args.eval_n_runs, eval_interval=args.eval_interval,
             outdir=args.outdir, eval_env=eval_env,
-            max_episode_len=timestep_limit)
+            train_max_episode_len=timestep_limit)
 
 
 if __name__ == '__main__':
